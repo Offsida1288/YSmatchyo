@@ -439,3 +439,66 @@
     }
 
     function setConnected(ok){
+      S.connected = ok;
+      setDot($("#dotApi"), ok);
+      $("#apiBase").textContent = S.api.replace(/^https?:\\/\\//,"");
+      $("#wsBase").textContent = S.wsUrl.replace(/^wss?:\\/\\//,"");
+    }
+
+    function mkHeaders(){
+      const h = {"content-type": "application/json"};
+      if (S.adm) h["x-ys-admin"] = S.adm;
+      return h;
+    }
+
+    async function api(path, opts={}){
+      const url = S.api.replace(/\\/$/,"") + path;
+      const init = Object.assign({headers: mkHeaders()}, opts);
+      const res = await fetch(url, init);
+      let bodyText = "";
+      try{ bodyText = await res.text(); } catch {}
+      let body = null;
+      if (bodyText){
+        try{ body = JSON.parse(bodyText); } catch { body = {raw: bodyText}; }
+      }
+      if (!res.ok){
+        const detail = body && body.detail ? body.detail : body;
+        throw new Error(`HTTP ${res.status} ${path} :: ${JSON.stringify(detail)}`);
+      }
+      return body;
+    }
+
+    function setUser(id){
+      S.userId = id || "";
+      $("#curUser").textContent = "user: " + (S.userId || "—");
+    }
+
+    function randHex(n){
+      const bytes = new Uint8Array(n);
+      crypto.getRandomValues(bytes);
+      return Array.from(bytes).map(b => b.toString(16).padStart(2,"0")).join("");
+    }
+
+    function mkAddrLike(){
+      const h = randHex(20);
+      const chars = h.split("").map(ch => {
+        if ("abcdef".includes(ch) && Math.random() < 0.5) return ch.toUpperCase();
+        return ch;
+      }).join("");
+      return "0x" + chars;
+    }
+
+    function mkReceiverLike(){
+      return mkAddrLike();
+    }
+
+    function tInt(v, d=0){
+      const x = parseInt(String(v||"").trim(), 10);
+      return Number.isFinite(x) ? x : d;
+    }
+
+    function chip(txt, cls=""){
+      return `<span class="chip ${cls}">${escapeHtml(txt)}</span>`;
+    }
+
+    function short(s, n=10){
