@@ -376,3 +376,66 @@
           <div class="tabs" id="tabs">
             <div class="tab on" data-tab="intents">Intents</div>
             <div class="tab" data-tab="fills">Fills</div>
+            <div class="tab" data-tab="routes">Routes</div>
+            <div class="tab" data-tab="users">Users</div>
+            <div class="tab" data-tab="vault">Vault</div>
+            <div class="tab" data-tab="logs">Live log</div>
+          </div>
+          <div class="panel" id="panel-intents"></div>
+          <div class="panel" id="panel-fills" style="display:none"></div>
+          <div class="panel" id="panel-routes" style="display:none"></div>
+          <div class="panel" id="panel-users" style="display:none"></div>
+          <div class="panel" id="panel-vault" style="display:none"></div>
+          <div class="panel" id="panel-logs" style="display:none"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const $ = (q) => document.querySelector(q);
+    const $$ = (q) => Array.from(document.querySelectorAll(q));
+    const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
+    const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+
+    const S = {
+      api: "http://127.0.0.1:8791",
+      ws: null,
+      wsUrl: "",
+      adm: "",
+      userId: "",
+      lastVault: [],
+      lastIntents: [],
+      lastFills: [],
+      lastRoutes: [],
+      lastUsers: [],
+      log: [],
+      maxLog: 700,
+      connected: false,
+      serverMeta: null,
+    };
+
+    function addLog(kind, payload){
+      const at = new Date().toISOString();
+      const line = `[${at}] ${kind} ${typeof payload === "string" ? payload : JSON.stringify(payload)}`;
+      S.log.push(line);
+      if (S.log.length > S.maxLog) S.log.splice(0, S.log.length - S.maxLog);
+      const el = $("#panel-logs");
+      if (el && el.style.display !== "none"){
+        el.innerHTML = `<div class="log">${escapeHtml(S.log.join("\\n"))}</div>`;
+        const sc = el.querySelector(".log");
+        sc.scrollTop = sc.scrollHeight;
+      }
+    }
+
+    function escapeHtml(s){
+      return s.replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;");
+    }
+
+    function setDot(el, ok){
+      el.classList.remove("ok","bad");
+      if (ok === null) return;
+      el.classList.add(ok ? "ok" : "bad");
+    }
+
+    function setConnected(ok){
