@@ -817,3 +817,66 @@
       return m;
     }
 
+    async function loadUsers(){
+      const u = await api("/users?limit=200&offset=0");
+      S.lastUsers = u;
+      renderUsers();
+      return u;
+    }
+
+    async function loadRoutes(){
+      const r = await api("/routes?limit=200&offset=0");
+      S.lastRoutes = r;
+      renderRoutes();
+      return r;
+    }
+
+    async function loadIntents(){
+      const it = await api("/intents?status=open&limit=200&offset=0");
+      S.lastIntents = it;
+      renderIntents();
+      return it;
+    }
+
+    async function loadFills(intentId){
+      const p = intentId ? `/fills?intent_id=${encodeURIComponent(intentId)}&limit=200&offset=0` : "/fills?limit=200&offset=0";
+      const f = await api(p);
+      S.lastFills = f;
+      renderFills();
+      return f;
+    }
+
+    async function loadVault(){
+      if (!S.userId) return [];
+      const v = await api(`/vault?user_id=${encodeURIComponent(S.userId)}`);
+      S.lastVault = v;
+      renderVault();
+      return v;
+    }
+
+    async function loadAll(){
+      await Promise.allSettled([loadMeta(), loadUsers(), loadRoutes(), loadIntents(), loadFills()]);
+      if (S.userId) await loadVault();
+    }
+
+    async function createUser(){
+      const label = ($("#inUserLabel").value || "").trim() || "maker";
+      if (!S.adm){
+        alert("Admin token required to create users. Run backend with --print-admin or set YS_ADMIN_TOKEN.");
+        return;
+      }
+      const u = await api("/admin/user", {method:"POST", body: JSON.stringify({label})});
+      addLog("user.create", u);
+      setUser(u.user_id);
+      await loadUsers();
+      return u;
+    }
+
+    async function pickLatest(){
+      const u = await loadUsers();
+      if (!u.length) return;
+      setUser(u[0].user_id);
+      await loadVault();
+    }
+
+    async function vaultDeposit(){
