@@ -628,3 +628,66 @@
           <td class="mono">${escapeHtml(short(f.fill_id,12))}</td>
           <td class="mono">${escapeHtml(short(f.intent_id,12))}</td>
           <td class="mono">${escapeHtml(short(f.filler_id,10))}<div class="small mono">${escapeHtml(short(f.filler_addr,10))}</div></td>
+          <td class="mono">${escapeHtml(short(f.route_tag,12))}</td>
+          <td class="mono">${escapeHtml(f.pay_token)} ${escapeHtml(String(f.pay_amount))}</td>
+          <td class="mono">${escapeHtml(f.receive_token)} ${escapeHtml(String(f.receive_amount))}</td>
+          <td class="mono">${escapeHtml(String(f.fee_paid))}</td>
+          <td class="small">${escapeHtml(fmtMs(f.created_ms))}</td>
+          <td>${st}</td>
+        </tr>`);
+      }
+      html.push(`</tbody></table>`);
+      el.innerHTML = html.join("");
+    }
+
+    function renderRoutes(){
+      const el = panel("routes");
+      const rows = S.lastRoutes || [];
+      $("#kRoutes").textContent = String(rows.length);
+      const html = [];
+      html.push(`<div class="row" style="justify-content:space-between;margin-bottom:10px">`);
+      html.push(`<div class="small">Routes steer the auto-matcher. Add routes using admin token.</div>`);
+      html.push(`<div class="row">
+        <button class="ghost" id="btnRouteSeed">Seed routes (admin)</button>
+        <button class="ghost" id="btnRouteAdd">Add route (admin)</button>
+      </div>`);
+      html.push(`</div>`);
+
+      if (!rows.length){
+        html.push(`<div class="small">No routes found. Click “Seed routes (admin)” or add one.</div>`);
+        el.innerHTML = html.join("");
+        $("#btnRouteSeed").onclick = seedRoutes;
+        $("#btnRouteAdd").onclick = addRouteDialog;
+        return;
+      }
+
+      html.push(`<table class="table"><thead><tr>
+        <th>Route</th><th>Dst chain</th><th>Enabled</th><th>Risk tier</th><th>Latency</th><th>Curator</th><th>Score</th><th>Updated</th>
+      </tr></thead><tbody>`);
+      for (const r of rows){
+        const en = r.enabled ? chip("on","ok") : chip("off","bad");
+        const risk = r.risk_tier > 900 ? chip(String(r.risk_tier),"bad") :
+                     r.risk_tier > 400 ? chip(String(r.risk_tier),"warn") :
+                     chip(String(r.risk_tier),"ok");
+        html.push(`<tr>
+          <td class="mono">${escapeHtml(short(r.route_tag,14))}</td>
+          <td class="mono">${escapeHtml(String(r.dst_chain_id))}</td>
+          <td>${en}</td>
+          <td>${risk}</td>
+          <td class="mono">${escapeHtml(String(r.latency_hint_sec))}s</td>
+          <td class="mono">${escapeHtml(short(r.curator,12))}</td>
+          <td class="mono">${escapeHtml(String(r.score_bps))}</td>
+          <td class="small">${escapeHtml(fmtMs(r.updated_ms))}</td>
+        </tr>`);
+      }
+      html.push(`</tbody></table>`);
+      el.innerHTML = html.join("");
+      $("#btnRouteSeed").onclick = seedRoutes;
+      $("#btnRouteAdd").onclick = addRouteDialog;
+    }
+
+    function renderUsers(){
+      const el = panel("users");
+      const rows = S.lastUsers || [];
+      $("#kUsers").textContent = String(rows.length);
+      if (!rows.length){
