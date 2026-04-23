@@ -502,3 +502,66 @@
     }
 
     function short(s, n=10){
+      if (!s) return "—";
+      if (s.length <= n*2) return s;
+      return s.slice(0,n) + "…" + s.slice(-n);
+    }
+
+    function fmtMs(ms){
+      if (!ms || ms <= 0) return "—";
+      const d = new Date(ms);
+      return d.toLocaleString();
+    }
+
+    function panel(name){
+      return $("#panel-" + name);
+    }
+
+    function showTab(name){
+      $$("#tabs .tab").forEach(t => {
+        t.classList.toggle("on", t.dataset.tab === name);
+      });
+      ["intents","fills","routes","users","vault","logs"].forEach(k => {
+        const el = panel(k);
+        el.style.display = (k === name) ? "" : "none";
+      });
+      if (name === "logs"){
+        panel("logs").innerHTML = `<div class="log">${escapeHtml(S.log.join("\\n"))}</div>`;
+      }
+    }
+
+    function renderIntents(){
+      const el = panel("intents");
+      const rows = S.lastIntents || [];
+      $("#kIntents").textContent = String(rows.length);
+      if (!rows.length){
+        el.innerHTML = `<div class="small">No open intents yet. Post one from the left panel.</div>`;
+        return;
+      }
+      const html = [];
+      html.push(`<table class="table">`);
+      html.push(`<thead><tr>
+        <th>Intent</th>
+        <th>Maker</th>
+        <th>Input</th>
+        <th>Output (min)</th>
+        <th>Dst</th>
+        <th>Expiry</th>
+        <th>Status</th>
+        <th>Actions</th>
+      </tr></thead>`);
+      html.push(`<tbody>`);
+      for (const it of rows){
+        const stChip = it.status === "open" ? chip("open","ok") :
+                      it.status === "filled" ? chip("filled","ok") :
+                      it.status === "expired" ? chip("expired","warn") :
+                      it.status === "cancelled" ? chip("cancelled","bad") :
+                      chip(it.status||"—");
+        const risk = it.risk_code ? chip("risk:"+it.risk_code, "warn") : chip("risk:0","ok");
+        html.push(`<tr>
+          <td class="mono">${escapeHtml(short(it.intent_id,12))}</td>
+          <td class="mono">${escapeHtml(short(it.maker_id,10))}</td>
+          <td><div class="mono">${escapeHtml(it.input_token)} ${escapeHtml(String(it.input_amount))}</div>
+              <div class="small">filled: <span class="mono">${escapeHtml(String(it.filled_input))}</span></div></td>
+          <td><div class="mono">${escapeHtml(it.output_token)} ${escapeHtml(String(it.min_output_amount))}</div>
+              <div class="small mono">${escapeHtml(short(it.strategy_tag,10))}</div></td>
