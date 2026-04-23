@@ -880,3 +880,66 @@
     }
 
     async function vaultDeposit(){
+      if (!S.userId){ alert("Pick a user."); return; }
+      const token = ($("#inVaultTok").value || "").trim() || "USDC";
+      const amount = tInt($("#inVaultAmt").value, 0);
+      if (amount <= 0){ alert("Amount must be > 0"); return; }
+      const v = await api(`/vault/deposit?user_id=${encodeURIComponent(S.userId)}`, {method:"POST", body: JSON.stringify({token, amount})});
+      addLog("vault.deposit", v);
+      await loadVault();
+    }
+
+    async function vaultWithdraw(){
+      if (!S.userId){ alert("Pick a user."); return; }
+      const token = ($("#inVaultTok").value || "").trim() || "USDC";
+      const amount = tInt($("#inVaultAmt").value, 0);
+      if (amount <= 0){ alert("Amount must be > 0"); return; }
+      const v = await api(`/vault/withdraw?user_id=${encodeURIComponent(S.userId)}`, {method:"POST", body: JSON.stringify({token, amount})});
+      addLog("vault.withdraw", v);
+      await loadVault();
+    }
+
+    async function autoMaker(){
+      $("#inMakerAddr").value = mkAddrLike();
+      $("#inDstRecv").value = mkReceiverLike();
+      addLog("maker.auto", {maker: $("#inMakerAddr").value, receiver: $("#inDstRecv").value});
+    }
+
+    async function postIntent(){
+      if (!S.userId){ alert("Pick a user."); return; }
+      const maker_addr = ($("#inMakerAddr").value || "").trim();
+      const dst_receiver = ($("#inDstRecv").value || "").trim();
+      const input_token = ($("#inInTok").value || "").trim();
+      const output_token = ($("#inOutTok").value || "").trim();
+      const input_amount = tInt($("#inInAmt").value, 0);
+      const min_output_amount = tInt($("#inMinOut").value, 0);
+      const dst_chain_id = tInt($("#inDstChain").value, 8453);
+      const max_fee_bps = tInt($("#inMaxFee").value, 37);
+      const nonce = tInt($("#inNonce").value, 0);
+      const expSec = tInt($("#inExpSec").value, 3600);
+      const strategy_tag = ($("#inStrat").value || "").trim() || "aiv";
+      const expiry_ms = Date.now() + clamp(expSec, 60, 9*24*3600) * 1000;
+
+      if (!maker_addr || maker_addr.length < 6){ alert("maker addr required"); return; }
+      if (!dst_receiver || dst_receiver.length < 6){ alert("dst receiver required"); return; }
+      const body = {
+        maker_id: S.userId,
+        maker_addr,
+        input_token,
+        input_amount,
+        output_token,
+        min_output_amount,
+        dst_chain_id,
+        dst_receiver,
+        expiry_ms,
+        nonce,
+        strategy_tag,
+        max_fee_bps,
+      };
+      const it = await api("/intent", {method:"POST", body: JSON.stringify(body)});
+      addLog("intent.post", it);
+      await loadIntents();
+      await loadFills();
+    }
+
+    async function seedRoutes(){
