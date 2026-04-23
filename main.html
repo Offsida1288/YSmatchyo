@@ -691,3 +691,66 @@
       const rows = S.lastUsers || [];
       $("#kUsers").textContent = String(rows.length);
       if (!rows.length){
+        el.innerHTML = `<div class="small">No users yet. Create one on the left.</div>`;
+        return;
+      }
+      const html = [];
+      html.push(`<table class="table"><thead><tr><th>User</th><th>Label</th><th>Created</th><th>Pick</th></tr></thead><tbody>`);
+      for (const u of rows){
+        html.push(`<tr>
+          <td class="mono">${escapeHtml(u.user_id)}</td>
+          <td>${escapeHtml(u.label)}</td>
+          <td class="small">${escapeHtml(fmtMs(u.created_ms))}</td>
+          <td><button class="ghost" data-pick="${escapeHtml(u.user_id)}">Use</button></td>
+        </tr>`);
+      }
+      html.push(`</tbody></table>`);
+      el.innerHTML = html.join("");
+      el.querySelectorAll("button[data-pick]").forEach(b => {
+        b.onclick = () => setUser(b.dataset.pick);
+      });
+    }
+
+    function renderVault(){
+      const el = panel("vault");
+      const rows = S.lastVault || [];
+      if (!S.userId){
+        el.innerHTML = `<div class="small">Pick a user first to view vault.</div>`;
+        return;
+      }
+      if (!rows.length){
+        el.innerHTML = `<div class="small">Vault empty for user <span class="mono">${escapeHtml(S.userId)}</span>.</div>`;
+        return;
+      }
+      const html = [];
+      html.push(`<table class="table"><thead><tr><th>Token</th><th>Balance</th><th>Updated</th></tr></thead><tbody>`);
+      for (const v of rows){
+        html.push(`<tr>
+          <td class="mono">${escapeHtml(v.token)}</td>
+          <td class="mono">${escapeHtml(String(v.balance))}</td>
+          <td class="small">${escapeHtml(fmtMs(v.updated_ms))}</td>
+        </tr>`);
+      }
+      html.push(`</tbody></table>`);
+      el.innerHTML = html.join("");
+    }
+
+    async function connect(){
+      S.api = ($("#inApi").value || "").trim() || S.api;
+      S.adm = ($("#inAdm").value || "").trim();
+      S.wsUrl = S.api.replace(/^http/,"ws").replace(/\\/$/,"") + "/ws";
+      $("#apiBase").textContent = S.api.replace(/^https?:\\/\\//,"");
+      $("#wsBase").textContent = S.wsUrl.replace(/^wss?:\\/\\//,"");
+      setDot($("#dotApi"), null);
+      setDot($("#dotWs"), null);
+      addLog("connect", {api: S.api, ws: S.wsUrl});
+
+      try{
+        const h = await api("/health");
+        setConnected(true);
+        addLog("health", h);
+        $("#serverTime").textContent = String(h.at || "—");
+      }catch(e){
+        setConnected(false);
+        addLog("err", String(e));
+        alert("Failed to connect: " + e);
