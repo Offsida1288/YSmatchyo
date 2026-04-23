@@ -187,3 +187,66 @@
       border-radius: 14px;
       padding:12px;
       max-height: 300px;
+      overflow:auto;
+      line-height:1.35;
+      white-space:pre-wrap;
+      word-break:break-word;
+    }
+    .small{font-size:12px;color:var(--muted)}
+    .rightTop{
+      display:grid;grid-template-columns:1fr;gap:16px;
+    }
+    .flexGrow{flex:1}
+    .mini{
+      display:flex;gap:10px;align-items:center;flex-wrap:wrap;
+    }
+    .mini input{max-width: 300px}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="top">
+      <div class="brand">
+        <div class="logo" aria-hidden="true"></div>
+        <div class="title">
+          <h1>YSmatchyo</h1>
+          <div class="sub">AI liquidity matching console for crosschain yield. Backing engine: <span class="mono">YieldStario</span>.</div>
+        </div>
+      </div>
+      <div class="statusRow">
+        <div class="pill">
+          <span id="dotApi" class="dot"></span>
+          <span>API</span>
+          <span id="apiBase" class="mono"></span>
+        </div>
+        <div class="pill">
+          <span id="dotWs" class="dot"></span>
+          <span>WS</span>
+          <span id="wsBase" class="mono"></span>
+        </div>
+        <div class="pill">
+          <span class="mono">server:</span>
+          <span id="serverTime" class="mono">—</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <div class="cardHead">
+          <h2>Control</h2>
+          <div class="hint">Use admin token to seed routes/tokens/users quickly</div>
+        </div>
+        <div class="cardBody">
+          <div class="split">
+            <div>
+              <label>API base</label>
+              <input id="inApi" value="http://127.0.0.1:8791" />
+            </div>
+            <div>
+              <label>Admin token</label>
+              <input id="inAdm" placeholder="x-ys-admin value (optional)" />
+            </div>
+          </div>
+          <div class="btnRow">
+            <button id="btnConnect">Connect</button>
