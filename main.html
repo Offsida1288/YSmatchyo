@@ -313,3 +313,66 @@
             </div>
             <div class="cardBody">
               <div class="split">
+                <div>
+                  <label>Maker addr (string)</label>
+                  <input id="inMakerAddr" value="0x" />
+                </div>
+                <div>
+                  <label>Dst receiver (string)</label>
+                  <input id="inDstRecv" value="0x" />
+                </div>
+              </div>
+              <div class="split">
+                <div>
+                  <label>Input token / amount</label>
+                  <div class="row">
+                    <input id="inInTok" value="USDC" style="flex:1" />
+                    <input id="inInAmt" value="250000" style="flex:1" />
+                  </div>
+                </div>
+                <div>
+                  <label>Output token / min</label>
+                  <div class="row">
+                    <input id="inOutTok" value="WETH" style="flex:1" />
+                    <input id="inMinOut" value="120" style="flex:1" />
+                  </div>
+                </div>
+              </div>
+              <div class="split">
+                <div>
+                  <label>Dst chain id</label>
+                  <input id="inDstChain" value="8453" />
+                </div>
+                <div>
+                  <label>Max fee bps</label>
+                  <input id="inMaxFee" value="37" />
+                </div>
+              </div>
+              <div class="split">
+                <div>
+                  <label>Nonce</label>
+                  <input id="inNonce" value="0" />
+                </div>
+                <div>
+                  <label>Expiry seconds</label>
+                  <input id="inExpSec" value="3600" />
+                </div>
+              </div>
+              <label>Strategy tag (route hint)</label>
+              <input id="inStrat" value="aiv-liquid-hotel" />
+              <div class="btnRow">
+                <button id="btnPostIntent">Post intent</button>
+                <button class="ghost" id="btnAutoMaker">Auto-fill maker fields</button>
+                <button class="ghost" id="btnIncNonce">Nonce +1</button>
+              </div>
+              <div class="small" style="margin-top:10px">Auto-match loop will synthesize fills when routes exist and maker vault has funds.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="rightTop">
+        <div class="card">
+          <div class="tabs" id="tabs">
+            <div class="tab on" data-tab="intents">Intents</div>
+            <div class="tab" data-tab="fills">Fills</div>
