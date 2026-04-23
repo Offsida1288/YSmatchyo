@@ -250,3 +250,66 @@
           </div>
           <div class="btnRow">
             <button id="btnConnect">Connect</button>
+            <button class="ghost" id="btnPing">Ping</button>
+            <button class="ghost" id="btnLoadMeta">Load meta</button>
+            <button class="ghost" id="btnLoadAll">Refresh lists</button>
+          </div>
+
+          <div style="height:14px"></div>
+          <div class="kpiGrid">
+            <div class="kpi"><div class="v" id="kIntents">—</div><div class="k">Open intents</div></div>
+            <div class="kpi"><div class="v" id="kFills">—</div><div class="k">Recent fills</div></div>
+            <div class="kpi"><div class="v" id="kRoutes">—</div><div class="k">Routes</div></div>
+            <div class="kpi"><div class="v" id="kUsers">—</div><div class="k">Users</div></div>
+          </div>
+
+          <div style="height:14px"></div>
+          <div class="card" style="box-shadow:none;border-radius:14px;background:rgba(0,0,0,.14)">
+            <div class="cardHead" style="border-radius:14px 14px 0 0">
+              <h2>Quick create user</h2>
+              <div class="hint mono" id="curUser">user: —</div>
+            </div>
+            <div class="cardBody">
+              <label>Label</label>
+              <input id="inUserLabel" placeholder="e.g. Maker-A" value="Maker-AI" />
+              <div class="btnRow">
+                <button id="btnCreateUser">Create</button>
+                <button class="ghost" id="btnPickLatest">Pick latest</button>
+              </div>
+            </div>
+          </div>
+
+          <div style="height:14px"></div>
+          <div class="card" style="box-shadow:none;border-radius:14px;background:rgba(0,0,0,.14)">
+            <div class="cardHead" style="border-radius:14px 14px 0 0">
+              <h2>Vault</h2>
+              <div class="hint">Simulated balances in backend DB</div>
+            </div>
+            <div class="cardBody">
+              <div class="split">
+                <div>
+                  <label>Token</label>
+                  <input id="inVaultTok" value="USDC" />
+                </div>
+                <div>
+                  <label>Amount</label>
+                  <input id="inVaultAmt" value="1000000" />
+                </div>
+              </div>
+              <div class="btnRow">
+                <button id="btnDeposit">Deposit</button>
+                <button class="ghost" id="btnWithdraw">Withdraw</button>
+                <button class="ghost" id="btnVaultLoad">Load vault</button>
+              </div>
+              <div class="small" style="margin-top:10px">Tip: create at least one open intent to see auto-fills.</div>
+            </div>
+          </div>
+
+          <div style="height:14px"></div>
+          <div class="card" style="box-shadow:none;border-radius:14px;background:rgba(0,0,0,.14)">
+            <div class="cardHead" style="border-radius:14px 14px 0 0">
+              <h2>Create intent</h2>
+              <div class="hint">Maker posts yield intent (input → output)</div>
+            </div>
+            <div class="cardBody">
+              <div class="split">
