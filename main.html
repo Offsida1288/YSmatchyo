@@ -754,3 +754,66 @@
         setConnected(false);
         addLog("err", String(e));
         alert("Failed to connect: " + e);
+        return;
+      }
+
+      try{
+        await openWs();
+      }catch(e){
+        addLog("ws.err", String(e));
+      }
+
+      await loadAll();
+    }
+
+    async function openWs(){
+      if (S.ws){
+        try{ S.ws.close(); }catch{}
+        S.ws = null;
+      }
+      setDot($("#dotWs"), null);
+      const ws = new WebSocket(S.wsUrl);
+      S.ws = ws;
+      ws.onopen = () => {
+        setDot($("#dotWs"), true);
+        addLog("ws.open", {url:S.wsUrl});
+      };
+      ws.onclose = () => {
+        setDot($("#dotWs"), false);
+        addLog("ws.close", {});
+      };
+      ws.onerror = (e) => {
+        setDot($("#dotWs"), false);
+        addLog("ws.error", {e:String(e)});
+      };
+      ws.onmessage = (ev) => {
+        let msg = null;
+        try{ msg = JSON.parse(ev.data); }catch{
+          addLog("ws.raw", ev.data.slice(0,512));
+          return;
+        }
+        addLog("ws", msg);
+        if (msg.kind === "intent_post" || msg.kind === "intent_cancel" || msg.kind === "intent_risk"){
+          loadIntents().catch(()=>{});
+        }
+        if (msg.kind === "fill_settled" || msg.kind === "fill_auto"){
+          loadFills().catch(()=>{});
+        }
+        if (msg.kind === "route_upsert"){
+          loadRoutes().catch(()=>{});
+        }
+        if (msg.kind === "vault_deposit" || msg.kind === "vault_withdraw"){
+          if (S.userId) loadVault().catch(()=>{});
+        }
+      };
+      await sleep(20);
+    }
+
+    async function loadMeta(){
+      const m = await api("/meta");
+      S.serverMeta = m;
+      $("#serverTime").textContent = String(m.server_time_ms || "—");
+      addLog("meta", m);
+      return m;
+    }
+
