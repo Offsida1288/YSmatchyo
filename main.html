@@ -565,3 +565,66 @@
               <div class="small">filled: <span class="mono">${escapeHtml(String(it.filled_input))}</span></div></td>
           <td><div class="mono">${escapeHtml(it.output_token)} ${escapeHtml(String(it.min_output_amount))}</div>
               <div class="small mono">${escapeHtml(short(it.strategy_tag,10))}</div></td>
+          <td><div class="mono">chain ${escapeHtml(String(it.dst_chain_id))}</div>
+              <div class="small mono">${escapeHtml(short(it.dst_receiver,10))}</div></td>
+          <td><div class="small">${escapeHtml(fmtMs(it.expiry_ms))}</div></td>
+          <td>${stChip} ${risk}</td>
+          <td>
+            <div class="mini">
+              <button class="ghost" data-act="view" data-id="${escapeHtml(it.intent_id)}">View</button>
+              <button class="ghost" data-act="fills" data-id="${escapeHtml(it.intent_id)}">Fills</button>
+              <button class="ghost" data-act="quote" data-id="${escapeHtml(it.intent_id)}">Quote</button>
+              <button class="bad" data-act="cancel" data-id="${escapeHtml(it.intent_id)}">Cancel</button>
+            </div>
+          </td>
+        </tr>`);
+      }
+      html.push(`</tbody></table>`);
+      el.innerHTML = html.join("");
+
+      el.querySelectorAll("button[data-act]").forEach(b => {
+        b.addEventListener("click", async () => {
+          const act = b.dataset.act;
+          const id = b.dataset.id;
+          try{
+            if (act === "view"){
+              const it = await api(`/intent/${encodeURIComponent(id)}`);
+              addLog("intent.view", it);
+              alert(JSON.stringify(it, null, 2));
+            } else if (act === "fills"){
+              await loadFills(id);
+              showTab("fills");
+            } else if (act === "cancel"){
+              if (!S.userId){ alert("Pick a user first."); return; }
+              const it = await api(`/intent/${encodeURIComponent(id)}/cancel?user_id=${encodeURIComponent(S.userId)}`, {method:"POST"});
+              addLog("intent.cancel", it);
+              await loadIntents();
+            } else if (act === "quote"){
+              await openQuoteDialog(id);
+            }
+          }catch(e){
+            addLog("err", String(e));
+            alert(String(e));
+          }
+        });
+      });
+    }
+
+    function renderFills(){
+      const el = panel("fills");
+      const rows = S.lastFills || [];
+      $("#kFills").textContent = String(rows.length);
+      if (!rows.length){
+        el.innerHTML = `<div class="small">No fills yet. Wait for auto-fills or submit fills via quote.</div>`;
+        return;
+      }
+      const html = [];
+      html.push(`<table class="table"><thead><tr>
+        <th>Fill</th><th>Intent</th><th>Filler</th><th>Route</th><th>Pay</th><th>Receive</th><th>Fee</th><th>At</th><th>Status</th>
+      </tr></thead><tbody>`);
+      for (const f of rows){
+        const st = f.status === "settled" ? chip("settled","ok") : chip(f.status||"—");
+        html.push(`<tr>
+          <td class="mono">${escapeHtml(short(f.fill_id,12))}</td>
+          <td class="mono">${escapeHtml(short(f.intent_id,12))}</td>
+          <td class="mono">${escapeHtml(short(f.filler_id,10))}<div class="small mono">${escapeHtml(short(f.filler_addr,10))}</div></td>
