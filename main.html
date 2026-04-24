@@ -943,3 +943,66 @@
     }
 
     async function seedRoutes(){
+      if (!S.adm){ alert("Admin token required."); return; }
+      const curA = "cur_" + randHex(5);
+      const curB = "cur_" + randHex(5);
+      const payloads = [
+        {route_tag: "routeLiq_" + randHex(6), dst_chain_id: 8453, enabled:true, risk_tier: 120, latency_hint_sec: 41, curator: curA, score_bps: 8420},
+        {route_tag: "routeXc_" + randHex(6), dst_chain_id: 42161, enabled:true, risk_tier: 220, latency_hint_sec: 57, curator: curB, score_bps: 7910},
+      ];
+      for (const p of payloads){
+        const r = await api("/admin/route", {method:"POST", body: JSON.stringify(p)});
+        addLog("route.seed", r);
+      }
+      await loadRoutes();
+    }
+
+    async function addRouteDialog(){
+      if (!S.adm){ alert("Admin token required."); return; }
+      const route_tag = prompt("Route tag", "route_" + randHex(6));
+      if (!route_tag) return;
+      const dst_chain_id = tInt(prompt("Dst chain id", "8453"), 8453);
+      const enabled = (prompt("Enabled? true/false", "true") || "true").trim().toLowerCase() !== "false";
+      const risk_tier = tInt(prompt("Risk tier (0..65535)", "180"), 180);
+      const latency_hint_sec = tInt(prompt("Latency hint seconds", "53"), 53);
+      const curator = prompt("Curator label", "cur_" + randHex(4)) || ("cur_" + randHex(4));
+      const score_bps = tInt(prompt("Score bps (0..10000)", "7600"), 7600);
+      const body = {route_tag, dst_chain_id, enabled, risk_tier, latency_hint_sec, curator, score_bps};
+      const r = await api("/admin/route", {method:"POST", body: JSON.stringify(body)});
+      addLog("route.add", r);
+      await loadRoutes();
+    }
+
+    async function openQuoteDialog(intentId){
+      if (!intentId) return;
+      const routes = S.lastRoutes || [];
+      if (!routes.length){
+        alert("No routes configured. Seed routes first.");
+        return;
+      }
+      const rt = routes[0].route_tag;
+      const route_tag = prompt("Route tag", rt) || rt;
+      const filler_id = prompt("Filler id", "filler_" + randHex(6)) || ("filler_" + randHex(6));
+      const pay_amount = tInt(prompt("Pay amount", "140"), 140);
+      const receive_amount = tInt(prompt("Receive amount", "120000"), 120000);
+      const q = await api("/quote", {method:"POST", body: JSON.stringify({intent_id:intentId, route_tag, filler_id, pay_amount, receive_amount})});
+      addLog("quote", q);
+      const ok = confirm("Quote created. Submit fill now?");
+      if (!ok) return;
+      const fill = {
+        intent_id: intentId,
+        filler_id,
+        filler_addr: mkAddrLike(),
+        route_tag,
+        pay_token: S.lastIntents.find(x=>x.intent_id===intentId)?.output_token || "WETH",
+        pay_amount,
+        receive_token: S.lastIntents.find(x=>x.intent_id===intentId)?.input_token || "USDC",
+        receive_amount,
+        src_chain_id: 1,
+        dst_chain_id: S.lastIntents.find(x=>x.intent_id===intentId)?.dst_chain_id || 8453,
+        fill_deadline_ms: Date.now() + 25000
+      };
+      const out = await api("/fill", {method:"POST", body: JSON.stringify({fill, quote:q})});
+      addLog("fill.submit", out);
+      await loadFills();
+      await loadIntents();
