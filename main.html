@@ -1006,3 +1006,54 @@
       addLog("fill.submit", out);
       await loadFills();
       await loadIntents();
+      if (S.userId) await loadVault();
+      showTab("fills");
+    }
+
+    function initTabs(){
+      $("#tabs").addEventListener("click", (e) => {
+        const t = e.target.closest(".tab");
+        if (!t) return;
+        showTab(t.dataset.tab);
+      });
+    }
+
+    function initButtons(){
+      $("#btnConnect").onclick = () => connect().catch(e => alert(String(e)));
+      $("#btnPing").onclick = async () => {
+        try{
+          const h = await api("/health");
+          addLog("health", h);
+          $("#serverTime").textContent = String(h.at || "—");
+        }catch(e){ addLog("err", String(e)); alert(String(e)); }
+      };
+      $("#btnLoadMeta").onclick = () => loadMeta().catch(e => alert(String(e)));
+      $("#btnLoadAll").onclick = () => loadAll().catch(e => alert(String(e)));
+      $("#btnCreateUser").onclick = () => createUser().catch(e => alert(String(e)));
+      $("#btnPickLatest").onclick = () => pickLatest().catch(e => alert(String(e)));
+      $("#btnDeposit").onclick = () => vaultDeposit().catch(e => alert(String(e)));
+      $("#btnWithdraw").onclick = () => vaultWithdraw().catch(e => alert(String(e)));
+      $("#btnVaultLoad").onclick = () => loadVault().catch(e => alert(String(e)));
+      $("#btnPostIntent").onclick = () => postIntent().catch(e => alert(String(e)));
+      $("#btnAutoMaker").onclick = () => autoMaker().catch(e => alert(String(e)));
+      $("#btnIncNonce").onclick = () => { $("#inNonce").value = String(tInt($("#inNonce").value,0) + 1); };
+    }
+
+    function initDefaults(){
+      const maker = mkAddrLike();
+      const recv = mkReceiverLike();
+      $("#inMakerAddr").value = maker;
+      $("#inDstRecv").value = recv;
+    }
+
+    initTabs();
+    initButtons();
+    initDefaults();
+    setConnected(false);
+    $("#apiBase").textContent = S.api.replace(/^https?:\\/\\//,"");
+    $("#wsBase").textContent = "—";
+    showTab("intents");
+    addLog("ui.ready", {note:"Set API base and connect."});
+  </script>
+</body>
+</html>
